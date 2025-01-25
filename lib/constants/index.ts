@@ -7,3 +7,9 @@ export const LATEST_PRODUCTS_LIMIT =
     email: '',
     password: '',
   };
+  export const signUpDefaultValues = {
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  };
