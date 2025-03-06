@@ -223,6 +223,7 @@ const ProductForm = ({
                           className='w-20 h-20 object-cover object-center rounded-sm'
                           width={100}
                           height={100}
+                          unoptimized={true}
                         />
                       ))}
                       <FormControl>
