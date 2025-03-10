@@ -39,7 +39,7 @@ export async function getAllProducts({
   category,
   price,
   rating,
-  sort,
+  
 }: {
   query: string;
   limit?: number;
@@ -47,7 +47,7 @@ export async function getAllProducts({
   category?: string;
   price?: string;
   rating?: string;
-  sort?: string;
+  
 }) {
 
    // Query filter
