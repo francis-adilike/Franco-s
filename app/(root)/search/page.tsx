@@ -16,7 +16,7 @@ import ProductCard from '@/components/shared/product/product-card';
      category = 'all',
      price = 'all',
      rating = 'all',
-     sort = 'newest',
+     
      page = '1',
    } = await props.searchParams;
  
@@ -25,7 +25,7 @@ import ProductCard from '@/components/shared/product/product-card';
      category,
      price,
      rating,
-     sort,
+     
      page: Number(page),
    });
  
