@@ -10,8 +10,8 @@ import { prisma } from "@/db/prisma";
 import { CartItem, PaymentResult } from "@/types";
 import { paypal } from "../paypal";
 import { revalidatePath } from "next/cache";
-import { PAGE_SIZE } from '../constants';
-import { Prisma } from '@prisma/client';
+import { PAGE_SIZE } from "../constants";
+import { Prisma } from "@prisma/client";
 
 // Create order and create the order items
 export async function createOrder() {
@@ -135,19 +135,19 @@ export async function createPayPalOrder(orderId: string) {
         data: {
           paymentResult: {
             id: paypalOrder.id,
-            email_address: '',
-            status: '',
+            email_address: "",
+            status: "",
             pricePaid: 0,
           },
         },
       });
       return {
         success: true,
-        message: 'Item order created successfully',
+        message: "Item order created successfully",
         data: paypalOrder.id,
       };
     } else {
-      throw new Error('Order not found');
+      throw new Error("Order not found");
     }
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -167,16 +167,16 @@ export async function approvePayPalOrder(
       },
     });
 
-    if (!order) throw new Error('Order not found');
+    if (!order) throw new Error("Order not found");
 
     const captureData = await paypal.capturePayment(data.orderID);
 
     if (
       !captureData ||
       captureData.id !== (order.paymentResult as PaymentResult)?.id ||
-      captureData.status !== 'COMPLETED'
+      captureData.status !== "COMPLETED"
     ) {
-      throw new Error('Error in PayPal payment');
+      throw new Error("Error in PayPal payment");
     }
 
     // Update order to paid
@@ -195,7 +195,7 @@ export async function approvePayPalOrder(
 
     return {
       success: true,
-      message: 'Your order has been paid',
+      message: "Your order has been paid",
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -220,9 +220,9 @@ async function updateOrderToPaid({
     },
   });
 
-  if (!order) throw new Error('Order not found');
+  if (!order) throw new Error("Order not found");
 
-  if (order.isPaid) throw new Error('Order is already paid');
+  if (order.isPaid) throw new Error("Order is already paid");
 
   // Transaction to update order and account for product stock
   await prisma.$transaction(async (tx) => {
@@ -254,9 +254,8 @@ async function updateOrderToPaid({
     },
   });
 
-  if (!updatedOrder) throw new Error('Order not found');
+  if (!updatedOrder) throw new Error("Order not found");
 }
-
 
 // Get user's orders
 export async function getMyOrders({
@@ -267,11 +266,11 @@ export async function getMyOrders({
   page: number;
 }) {
   const session = await auth();
-  if (!session) throw new Error('User is not authorized');
+  if (!session) throw new Error("User is not authorized");
 
   const data = await prisma.order.findMany({
     where: { userId: session?.user?.id },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     take: limit,
     skip: (page - 1) * limit,
   });
@@ -307,7 +306,7 @@ export async function getOrderSummary() {
   /* const salesData =
     await prisma.$queryRaw`SELECT to_char("createdAt", 'MM/YY') as "month", sum("totalPrice") as "totalSales" FROM "Order" GROUP BY to_char("createdAt", 'MM/YY')`; */
 
-    const salesDataRaw = await prisma.$queryRaw<
+  const salesDataRaw = await prisma.$queryRaw<
     Array<{ month: string; totalSales: Prisma.Decimal }>
   >`SELECT to_char("createdAt", 'MM/YY') as "month", sum("totalPrice") as "totalSales" FROM "Order" GROUP BY to_char("createdAt", 'MM/YY')`;
 
@@ -318,7 +317,7 @@ export async function getOrderSummary() {
 
   // Get latest sales
   const latestSales = await prisma.order.findMany({
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     include: {
       user: { select: { name: true } },
     },
@@ -339,12 +338,28 @@ export async function getOrderSummary() {
 export async function getAllOrders({
   limit = PAGE_SIZE,
   page,
+  query,
 }: {
   limit?: number;
   page: number;
+  query: string;
 }) {
+  const queryFilter: Prisma.OrderWhereInput =
+    query && query !== "all"
+      ? {
+          user: {
+            name: {
+              contains: query,
+              mode: "insensitive",
+            } as Prisma.StringFilter,
+          },
+        }
+      : {};
   const data = await prisma.order.findMany({
-    orderBy: { createdAt: 'desc' },
+    where: {
+      ...queryFilter
+    },
+    orderBy: { createdAt: "desc" },
     take: limit,
     skip: (page - 1) * limit,
     include: { user: { select: { name: true } } },
@@ -363,11 +378,11 @@ export async function deleteOrder(id: string) {
   try {
     await prisma.order.delete({ where: { id } });
 
-    revalidatePath('/admin/orders');
+    revalidatePath("/admin/orders");
 
     return {
       success: true,
-      message: 'Order deleted successfully',
+      message: "Order deleted successfully",
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -381,7 +396,7 @@ export async function updateOrderToPaidCOD(orderId: string) {
 
     revalidatePath(`/order/${orderId}`);
 
-    return { success: true, message: 'Order marked as paid' };
+    return { success: true, message: "Order marked as paid" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -396,8 +411,8 @@ export async function deliverOrder(orderId: string) {
       },
     });
 
-    if (!order) throw new Error('Order not found');
-    if (!order.isPaid) throw new Error('Order is not paid');
+    if (!order) throw new Error("Order not found");
+    if (!order.isPaid) throw new Error("Order is not paid");
 
     await prisma.order.update({
       where: { id: orderId },
@@ -411,7 +426,7 @@ export async function deliverOrder(orderId: string) {
 
     return {
       success: true,
-      message: 'Order has been marked delivered',
+      message: "Order has been marked delivered",
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
